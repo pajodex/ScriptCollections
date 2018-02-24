@@ -35,6 +35,8 @@ for this certain item for offering to enable the goddess's blessing.
 		  report by: Cyro)
 */
 //=============================================================
+// Added to my personal repo.
+//=============================================================
 
 prontera,150,150,1	script	Goddess Patron	79,{
 function	pubroom ;
