@@ -1,0 +1,277 @@
+//===== rAthena Script =======================================
+//= PvP Wager Match
+//=====  by: =============================
+//= pajodex
+//===== Current Version: =====================================
+//= 1.0
+//===== Compatible With: =====================================
+//= rAthena Project (pajodex)
+//===== Description: =========================================
+/*
+PvP Wager Match
+	
+	Instead of boring @duel, I offer you a match where players
+	will need to bet zeny and item. Use @wager command to use
+	the NPC.
+	
+	All are easily configured on the settings below.
+	
+	Enjoy!
+
+*/
+//=====******** Note ********=================================
+//= if you find bugs or problem, please do tell DM me at
+//= Discord (pajodex#1328) or rAthena (pajodex) 
+//= open for suggestions
+//===== Additional Comments: =================================
+/* 	1.0 - Initial release
+*/
+//=============================================================
+-	script	PVPWager#Reward	-1,{
+function	OnEndWager ;
+function	OnWin ;
+	
+OnCommand:
+	if($refund_name$ == strcharinfo(0)) {
+		mes "Here is your refund because nobody accepted your match";
+		close2;
+		dispbottom "You have received "+$refund_zeny+"z as refund.";
+		set Zeny, Zeny + $refund_zeny;
+		getitem .item_bet, $refund_item;
+		sleep 100;
+		set $refund_name$, "";
+		set $refund_zeny, 0;
+		set $refund_item, 0;
+		end;
+	}
+	if(.wager == 2) { 
+		mes "a match is starting"; 
+		close; 
+		}
+	if(.wager == 1) { 
+		goto OnAccept;
+		}
+	mes "Want to start a wager match against players?";
+		if(select("Yes:No") == 2) close;
+				
+			mes "Put Zeny amount (min: ^FF0000"+.min_bet+"^000000):";
+			input .@zeny_bet;
+			next;
+			if(.@zeny_bet < .min_bet) {
+				mes "Sorry, minimum zeny wager is ^FF0000"+.min_bet+"^000000.";
+				close;
+				}
+			mes "Sure? "+.@zeny_bet+"z ";
+			if(select("Yes:No") == 2) close;
+				if(zeny < .@zeny_bet) goto NoZeny;
+				next;
+				.ZBet = .@zeny_bet;
+				mes "the Goddess will be glad and bless everyone with powers!";
+				callshop "wager#shop",2;
+				npcshopattach "wager#shop";		
+			end;
+			
+OnSellItem:
+	for (.@i = 0; .@i < getarraysize(@sold_nameid); .@i++) {
+		if (countitem(@sold_nameid[.@i]) < @sold_quantity[.@i] || @sold_quantity[.@i] <= 0) {
+			mes "omgh4x!";
+			close;
+		} else if (@sold_quantity[.@i] < .min_bet_item) {
+			mes "yeah";
+			close;
+		} else if (@sold_nameid[.@i] == .item_bet){
+			delitem .item_bet, @sold_quantity[.@i];
+			.item_bet_amount = @sold_quantity[.@i];
+		} else {
+			mes "Sorry, I only accept '^FF0000"+getitemname(.item_bet)+"^000000' for wager.";
+			close;
+		}
+	}
+	callsub OnComplete;	
+	end;
+			
+OnComplete:
+	mes "Successfully hosted a wager for 3 mins!";
+	.wager = 1;
+	zeny = zeny - .ZBet;
+	.Challenger$ = strcharinfo(0);
+	announce "[System] : ["+.Challenger$+"] wants to challenge anyone for "+.ZBet+"z and "+.item_bet_amount+" x "+getitemname(.item_bet)+" wager match.",bc_blue|bc_all;
+	initnpctimer;
+	end;
+			
+OnTimer60000:
+	announce "[System] : ["+.Challenger$+"] wants to challenge anyone for "+.ZBet+"z and "+.item_bet_amount+" x "+getitemname(.item_bet)+" wager match.",bc_blue|bc_all;
+	end;
+	
+OnTimer120000:
+	announce "[System] : ["+.Challenger$+"] wants to challenge anyone for "+.ZBet+"z and "+.item_bet_amount+" x "+getitemname(.item_bet)+" wager match.",bc_blue|bc_all;
+	end;
+	
+OnTimer150000:
+	announce "[System] : ["+.Challenger$+"] wants to challenge anyone for "+.ZBet+"z and "+.item_bet_amount+" x "+getitemname(.item_bet)+" wager match.",bc_blue|bc_all;
+	end;
+	
+OnPCLogoutEvent:
+	if(strcharinfo(0) == .Challenger$ && .wager == 1) {
+		stopnpctimer;
+		.Challenger$ = "";
+		.ZBet = 0;
+		.wager = 0;
+		.item_bet_amount = 0;
+		announce "[System] : Wager match is canceled because ["+strcharinfo(0)+"] has logged out.",bc_blue|bc_all;
+		end;
+	}
+	if(strcharinfo(0) == .Challenger$ && .wager == 2) {
+		announce "[System] : "+.Challengee$+" won the wager match because ["+.Challenger$+"] has logged off during the match",0;
+		dispbottom "You have received "+(2*.ZBet)+"z from bet.",0x00FF00, .Challengee_cid;;
+		set zeny, zeny + (2*.ZBet), .Challengee_cid;
+		getitem .item_bet, (2*.item_bet_amount), .Challengee_aid;
+		sleep 1000;
+		OnEndWager;
+		end;
+	}
+	if(strcharinfo(0) == .Challengee$ && .wager == 2) {
+		announce "[System] : "+.Challenger$+" won the wager match because ["+.Challengee$+"] has logged off during the match",0;
+		dispbottom "You have received "+(2*.ZBet)+"z from bet.",0x00FF00, .Challenger_cid;;
+		set zeny, zeny + (2*.ZBet), .Challenger_cid;
+		getitem .item_bet, (2*.item_bet_amount), .Challenger_aid;
+		sleep 1000;
+		OnEndWager;
+		end;
+	}
+	end;
+
+OnTimer180000:	
+	stopnpctimer;
+	announce "[System] : Match canceled! Nobody wants to fight ["+.Challenger$+"] in wager match. ",bc_blue|bc_all;
+	set $refund_name$, .Challenger$;
+	set $refund_zeny, .ZBet;
+	set $refund_item, .item_bet_amount;
+	sleep 100;
+	set .Challenger$, "";
+	set .ZBet, 0;
+	set .wager, 0;
+	set .item_bet_amount, 0;
+	end;
+		
+NoZeny:
+	next;
+	if(zeny < .Zbet || zeny < .@zeny_bet) mes "You dont have enough Zeny to bet";
+	if(countitem(.item_bet) < .item_bet_amount) mes "You don't have enough "+getitemname(.item_bet)+" to bet";
+	close;
+		
+OnAccept:
+	if(strcharinfo(0) == .Challenger$) {
+		mes "You have hosted a match worth "+.Zbet+"z and "+.item_bet_amount+" x "+getitemname(.item_bet)+" ";
+		sleep 1000;
+		mes " ";
+		mes "Your waged zeny and item(s) wont be refunded";
+		sleep 1000;
+		mes " ";
+		mes "Do you want to cancel?";
+		if(select("Yes:No") == 2) close;
+			next;
+			mes "Your loss!";
+			close2;
+			.Challenger$ = "";
+			.ZBet = 0;
+			.wager = 0;
+			.item_bet_amount = 0;
+			announce "[System] : ["+strcharinfo(0)+"] has opted to canceled the match.",bc_blue|bc_all;
+		end;			
+	}
+	if(.wager == 2) { mes "a match is starting"; close; }
+		mes .Challenger$+" had waged "+.Zbet+"z and "+.item_bet_amount+" x "+getitemname(.item_bet)+" for a 3 round match.";
+		mes " ";
+		mes "Do you accept his/her offer?";
+		if(select("Yes:No") == 2) close; 
+			if(zeny < .Zbet || countitem(.item_bet) < .item_bet_amount) goto NoZeny;
+			delitem .item_bet, .item_bet_amount;
+			zeny = zeny - .ZBet;
+			.Challengee$ = strcharinfo(0);
+			.wager = 2;
+			goto OnStart;
+	end;
+
+OnDieHeal:
+	recovery 3,.map$;
+	sleep 3000;
+	warp .map$, .challenger_coord[0], .challenger_coord[1], .Challenger_cid;
+	warp .map$, .challengee_coord[0], .challengee_coord[1], .Challengee_cid;
+	sleep 1000;
+	.round++;
+	mapannounce .map$, "Round "+.round+" Start!",1,0x33c7ff;
+	end;
+	
+OnStart:
+	stopnpctimer;
+	set .round, 1;
+	set .Challenger_aid, getcharid(3,.Challenger$);
+	set .Challengee_aid, getcharid(3,.Challengee$);
+	set .Challenger_cid, getcharid(0,.Challenger$);
+	set .Challengee_cid, getcharid(0,.Challengee$);
+	warp .map$, .challenger_coord[0], .challenger_coord[1], .Challenger_cid;
+	warp .map$, .challengee_coord[0], .challengee_coord[1], .Challengee_cid;
+	announce "[ System ] : [ "+.Challenger$+" ] vs [ "+.Challengee$+" ] for a [ "+.ZBet+"z ] wager match!",bc_blue|bc_all;
+	end;
+	
+OnPCKillEvent:
+	if ( strcharinfo(3) == .map$) {
+		if( .Challenger_aid == killerrid ) {
+			OnWin(.challenger_point);
+		}
+			else
+		{
+			OnWin(.challengee_point);
+		}
+	}
+end;
+
+	function	OnEndWager	{
+		sleep 1000;
+		mapwarp .map$,"prontera",155,150,0;
+			.Challenger_aid = 0;
+			.Challengee_aid = 0;
+			.Challenger_cid = 0;
+			.Challengee_cid = 0;
+			.item_bet_amount = 0;
+			.Challengee$ = "";
+			.Challenger$ = "";
+			.wager = 0;
+			.ZBet = 0;
+			.challengee_point = .challenger_point = 0;
+	return;
+	}
+	
+	function	OnWin	{
+		set getarg(0), getarg(0) + 1;
+		if(getarg(0) == 2 )
+			{
+				announce "[ System ] : Congrats! "+strcharinfo(0)+" won the wager match",0;
+				dispbottom "You have received "+(2*.ZBet)+"z from bet.";
+				zeny = zeny + (2*.ZBet);
+				getitem .item_bet, (2*.item_bet_amount);
+				sleep 1000;
+				recovery 3,.map$,4;
+				OnEndWager;
+				end;
+			}
+			donpcevent strnpcinfo(0)+"::OnDieHeal";
+		return;
+	}
+
+OnInit:
+	// Start of config
+	.item_bet = 501;						// Item used for bet
+	.map$ = "force_5-1";					// Map name
+	setarray .challenger_coord, 75, 100; 	// Challenger Map coord <X>, <Y>
+	setarray .challengee_coord, 125, 100; 	// Challengee Map coord <X>, <Y>
+	.min_bet = 1000;						// Minimum Zeny Bet
+	.min_bet_item = 5;						// Minimum Item Bet
+	// End of config
+	OnEndWager;
+	bindatcmd("wager",strnpcinfo(0)+"::OnCommand");
+	end;
+}
+
+-	shop	wager#shop	-1,501:50.
