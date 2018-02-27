@@ -66,7 +66,7 @@ OnCommand:
 				if(zeny < .@zeny_bet) goto NoZeny;
 				next;
 				.ZBet = .@zeny_bet;
-				mes "I only accept '^FF0000"+getitemname(.item_bet)+"^000000' (min: x^FF0000"+.item_bet_amount+"^000000 pcs) for wager.";
+				mes "I only accept '^FF0000"+getitemname(.item_bet)+"^000000' (min: x^FF0000"+.min_bet_item+"^000000 pcs) for wager.";
 				callshop "wager#shop",2;
 				npcshopattach "wager#shop";		
 			end;
@@ -270,6 +270,13 @@ OnInit:
 	.min_bet_item = 5;						// Minimum Item Bet
 	// End of config
 	OnEndWager;
+	setarray .mapflag,
+		mf_nowarp,	mf_nowarpto,		mf_nosave,
+		mf_nomemo,	mf_noteleport,		mf_nopenalty,
+		mf_noreturn,	mf_nobranch,		mf_nomobloot,
+		mf_nomvploot,	MF_NOZENYPENALTY,	MF_NOTRADE,
+		MF_NOCOMMAND;
+	for ( .@f = 0; .@f < .@size; .@f++ ) setmapflag .map$, .mapflag[.@f];	
 	bindatcmd("wager",strnpcinfo(0)+"::OnCommand");
 	end;
 }
