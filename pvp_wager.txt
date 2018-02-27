@@ -284,6 +284,9 @@ OnInit:
 
 -	shop	wager#shop	-1,501:50.
 
+force_5-1	mapflag	pvp
+force_5-1	mapflag	pvp_noguild
+force_5-1	mapflag	pvp_noparty
 force_5-1	mapflag	nowarp
 force_5-1	mapflag	nowarpto
 force_5-1	mapflag	nosave
