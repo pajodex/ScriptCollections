@@ -66,7 +66,7 @@ OnCommand:
 				if(zeny < .@zeny_bet) goto NoZeny;
 				next;
 				.ZBet = .@zeny_bet;
-				mes "I only accept '^FF0000"+getitemname(.item_bet)+"^000000' for wager.";
+				mes "I only accept '^FF0000"+getitemname(.item_bet)+"^000000' (min: x^FF0000"+.item_bet_amount+"^000000 pcs) for wager.";
 				callshop "wager#shop",2;
 				npcshopattach "wager#shop";		
 			end;
