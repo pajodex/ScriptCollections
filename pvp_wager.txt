@@ -25,9 +25,10 @@ PvP Wager Match
 //= open for suggestions
 //===== Additional Comments: =================================
 /* 	1.0 - Initial release
+	1.1 - added mapflag on default map (force_5-1)
 */
 //=============================================================
--	script	PVPWager#Reward	-1,{
+-	script	PVPWager#Reward	100,{
 function	OnEndWager ;
 function	OnWin ;
 	
@@ -282,3 +283,17 @@ OnInit:
 }
 
 -	shop	wager#shop	-1,501:50.
+
+force_5-1	mapflag	nowarp
+force_5-1	mapflag	nowarpto
+force_5-1	mapflag	nosave
+force_5-1	mapflag	nomemo
+force_5-1	mapflag	noteleport
+force_5-1	mapflag	nopenalty
+force_5-1	mapflag	noreturn
+force_5-1	mapflag	nobranch
+force_5-1	mapflag	nomobloot
+force_5-1	mapflag	nomvploot
+force_5-1	mapflag	NOZENYPENALTY
+force_5-1	mapflag	NOTRADE
+force_5-1	mapflag	NOCOMMAND
