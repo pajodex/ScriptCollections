@@ -1,0 +1,592 @@
+// [========================================================]
+// [============    Battle Arena - Captain    ==========]
+// [========================================================]
+// [ Version 1                                              ]
+// [========================================================]
+// [ Original script by: Alayne				    ]
+// [========================================================]
+// [ Description:                                           ]
+// [--------------------------------------------------------]
+// [                                                        ]
+// [ - The Captain System				    ]
+// [========================================================]
+// [ Changelog: (5 last updates)                            ]
+// [--------------------------------------------------------]
+// [                                                        ]
+// [ v0: Creation                      			    ]
+// [                                                        ]
+// [                                                        ]
+// [========================================================]
+// [                                                        ]
+// [========================================================]
+// [================= Edited by: pajodex ===================]
+// [ Edit changelog:
+// [--------------------------------------------------------] 
+// [	~ Minor bug fixes									]
+// [	~ Converted to more rA friendly script				]
+// [	~ Added mapwarp to remove all players in map		]
+// [	~ Added Easier configurations						]
+// [	~ Added auto team cloth color change				]
+// [                                                        ]
+// [========================================================]
+
+prontera,99,144,0	script	CaptainManager::alabac	HIDDEN_WARP_NPC,2,2,{
+	end;
+
+OnStartC:
+	$captainon = 2;
+	.teamRedScore = 0;
+	.teamBlueScore = 0;
+	.countTimer = 0;
+	initnpctimer;
+	callsub OnUpdateCaptainState;
+	end;
+
+OnEndC:
+	if (.teamBlueScore == .teamRedScore)
+	{
+		announce "[Captain] It's a Draw with a score of " + .teamBlueScore + " to " + .teamRedScore + "! Congratulations everybody!",bc_all,0x0000FF;
+		
+		for(.@i = 0; .@i<getarraysize($@cTeamBlue); .@i++)
+		{
+			if(attachrid($@cTeamBlue[.@i]))
+			{
+				charcommand "#fakename " + strcharinfo(0);
+				bg_leave;
+				.@cnt = CPOINTS / .rewardCnt[2];
+				if(.@cnt < .rewardMin[2])
+					.@cnt = .rewardMin[2];
+				getitem .reward, .@cnt;
+				Zeny = Zeny + $CEntryPrice * (maxCMemberCount - 1) / (getarraysize($@cTeamBlue) + getarraysize($@cTeamRed));
+			}
+		}
+		for(.@i = 0; .@i<getarraysize($@cTeamRed); .@i++)
+		{
+			if(attachrid($@cTeamRed[.@i]))
+			{
+				charcommand "#fakename " + strcharinfo(0);
+				bg_leave;
+				.@cnt = CPOINTS / .rewardCnt[2];
+				if(.@cnt < .rewardMin[2])
+					.@cnt = .rewardMin[2];
+				getitem .reward, .@cnt;
+				Zeny = Zeny + $CEntryPrice * (maxCMemberCount - 1) / (getarraysize($@cTeamBlue) + getarraysize($@cTeamRed));
+			}
+		}
+	}
+	else if (.teamBlueScore > .teamRedScore)
+	{
+		announce "[Captain] Blue Team wins the Captain with a score of " + .teamBlueScore + " to " + .teamRedScore + "! Congratulations!",bc_all,0x0000FF;
+		for(.@i = 0; .@i<getarraysize($@cTeamBlue); .@i++)
+		{
+			if(attachrid($@cTeamBlue[.@i]))
+			{
+				charcommand "#fakename " + strcharinfo(0);
+				bg_leave;
+				.@cnt = CPOINTS / .rewardCnt[0];
+				if(.@cnt < .rewardMin[0])
+					.@cnt = .rewardMin[0];
+				getitem .reward, .@cnt;
+				//share zeny price
+				Zeny = Zeny + $CEntryPrice * (maxCMemberCount - 1) / getarraysize($@cTeamBlue);
+				CPOINTS = CPOINTS + .pointPerVictory;
+				Zeny = Zeny + CPOINTS * 10000;
+			}
+		}
+		for(.@i = 0; .@i<getarraysize($@cTeamRed); .@i++)
+		{
+			if(attachrid($@cTeamRed[.@i]))
+			{
+				charcommand "#fakename " + strcharinfo(0);
+				bg_leave;
+				.@cnt = CPOINTS / .rewardCnt[1];
+				if(.@cnt < .rewardMin[1])
+					.@cnt = .rewardMin[1];
+				getitem .reward, .@cnt;
+			}
+		}
+	}
+	else
+	{
+		announce "[Captain] Red Team wins the Captain with a score of " + .teamRedScore + " to " + .teamBlueScore + "! Congratulations!",bc_all,0x0000FF;
+		for(.@i = 0; .@i<getarraysize($@cTeamRed); .@i++)
+		{
+			if(attachrid($@cTeamRed[.@i]))
+			{
+				charcommand "#fakename " + strcharinfo(0);
+				bg_leave;
+				.@cnt = CPOINTS / .rewardCnt[0];
+				if(.@cnt < .rewardMin[0])
+					.@cnt = .rewardMin[0];
+				getitem .reward, .@cnt;
+				//share zeny price
+				Zeny = Zeny + $CEntryPrice * (maxCMemberCount - 1) / getarraysize($@cTeamRed);
+				getitem .reward, CPOINTS / 10;
+				CPOINTS = CPOINTS + .pointPerVictory;
+				Zeny = Zeny + CPOINTS * 10000;
+			}
+		}
+		for(.@i = 0; .@i<getarraysize($@cTeamBlue); .@i++)
+		{
+			if(attachrid($@cTeamBlue[.@i]))
+			{
+				charcommand "#fakename " + strcharinfo(0);
+				bg_leave;
+				.@cnt = CPOINTS / .rewardCnt[1];
+				if(.@cnt < .rewardMin[1])
+					.@cnt = .rewardMin[1];
+				getitem .reward, .@cnt;
+			}
+		}
+	}
+	bg_destroy $@RedTeam_CM; 
+	bg_destroy $@blueTeam_CM; 
+	$captainon = 0;
+	mapwarp $captainMap$,"prontera",156,191,0;
+	end;	
+	
+OnUpdateCaptainState:
+	for(.@i = 0; .@i<getarraysize($@cTeamBlue); .@i++)
+	{
+		if(attachrid($@cTeamBlue[.@i]))
+		{
+			CAPTAIN = 1;
+		}
+		else
+		{
+			deletearray $@cTeamBlue[.@i], 1;
+		}
+	}
+	for(.@i = 0; .@i<getarraysize($@cTeamRed); .@i++)
+	{
+		if(attachrid($@cTeamRed[.@i]))
+		{
+			CAPTAIN = 1;		
+		}
+		else
+		{
+			deletearray $@cTeamRed[.@i], 1;
+		}
+	}
+	.captainRedCount = getarraysize($@cTeamBlue);
+	.captainBlueCount = getarraysize($@cTeamRed);
+	return;
+
+OnTimer10000:
+	//every minute, check for members availability
+	.countTimer = .countTimer + 1;	
+	if (.countTimer == $battleDuration)
+	{
+		goto OnEndC;
+	}
+	setnpctimer 0;
+	end;
+
+OnPCLoginEvent:
+	CPOINTS = 0;
+	end;
+	
+OnPCDieEvent:
+	if (strcharinfo(3) == $captainMap$)
+	{
+		.@points = CAPTAIN == 0 ? 1 : 5;
+		if (callfunc("CheckTeamRedPlayer", 1) == 1)
+		{
+			//killed player was in first team
+			//increase team 2 score
+			.teamBlueScore = .teamBlueScore + .@points;
+			if(.@points == 5)
+			{
+				.captainRedCount = .captainRedCount - 1;
+				if(.captainRedCount == 0)
+				{
+					mapannounce $captainMap$, "[Captain] All the Captains from Red Team died. New round start!",bc_all,0x0000FF;
+					callsub OnUpdateCaptainState;
+				}
+				else
+				{
+					mapannounce $captainMap$, "[Captain] There's only " + .captainRedCount + " alive on Red Team!",bc_all,0x0000FF;
+				}
+			}
+			addtimer 3000, strnpcinfo(3) + "::OnHealAfterDeath";
+		}
+		else if (callfunc("CheckTeamBluePlayer", 1) == 1)
+		{
+			//killed player was in second team
+			//increase team 1 score
+			.teamRedScore = .teamRedScore + .@points;
+			if(.@points == 5)
+			{
+				.captainBlueCount = .captainBlueCount - 1;
+				if(.captainBlueCount == 0)
+				{
+					mapannounce $captainMap$, "[Captain] All the Captains from Blue Team died. New round start!",bc_all,0x0000FF;
+					callsub OnUpdateCaptainState;
+				}
+				else
+				{
+					mapannounce $captainMap$, "[Captain] There's only " + .captainBlueCount + " alive on Blue Team!",bc_all,0x0000FF;
+				}
+			}
+			addtimer 3000, strnpcinfo(3) + "::OnHealAfterDeath";
+		}
+
+		attachrid(killerrid);
+		CPOINTS = CPOINTS + .@points;
+		dispbottom "You've earn " + .@points + " points. Your current balance is " + CPOINTS;
+
+		bg_updatescore $captainMap$, .teamRedScore, .teamBlueScore;
+	}
+	end;
+	
+OnHealAfterDeath:
+	dispbottom "[Valkyrie] You received the War Goddess benediction!";
+	percentheal 100, 100;
+	if(.buffs == 1)
+	{
+		specialeffect2 EF_INCREASEAGI; sc_start SC_INCREASEAGI,240000,10;
+		specialeffect2 EF_BLESSING; sc_start SC_BLESSING,240000,10;
+	}
+	end;
+	
+OnBoardAsked:	
+	if($captainon == 2)
+	{
+		.@caller = getcharid(3);
+		
+		.@found1 = callfunc("CheckTeamRedPlayer", 0);
+		.@found2 = callfunc("CheckTeamBluePlayer", 0);
+		.@found = .@found1 + .@found2;
+		if(.@found >= 1)
+		{
+			.@caller = getcharid(3);
+			dispbottom "!!Captain Points Board!!";
+			dispbottom "";
+			dispbottom "Team Red total Points ==> " + .teamRedScore;
+			for(.@i = 0; .@i<getarraysize($@cTeamRed); .@i++)
+			{
+				.@attached = attachrid($@cTeamRed[.@i]);
+				if (.@attached == 0)
+				{
+					deletearray $@cTeamRed[.@i], 1;			
+				}
+				else
+				{
+					.@message$ = "	~" + strcharinfo(0) + ": " + CPOINTS;
+					if(attachrid(.@caller))
+						dispbottom .@message$;
+				}
+			}
+			
+			dispbottom "";
+			dispbottom "Team Blue total Points ==> " + .teamBlueScore;
+			for(.@i = 0; .@i<getarraysize($@cTeamBlue); .@i++)
+			{
+				.@attached = attachrid($@cTeamBlue[.@i]);
+				if (.@attached == 0)
+				{
+					deletearray $@cTeamBlue[.@i], 1;			
+				}
+				else
+				{
+					.@message$ = "	~" + strcharinfo(0) + ": " + CPOINTS;
+					if(attachrid(.@caller))
+						dispbottom .@message$;
+				}
+			}
+		}
+	}
+	end;
+
+OnInit:
+	// Config starts here ----------------------
+	$maxCMemberCount = 10; 				// Max players to start (if 5v5, settings should be = 10)
+	set $CEntryPrice, 0;				// Zeny entry fee
+	set .pointPerVictory, 100;			// Points gained per victory
+	.reward = 7773;						// Reward ID
+	setarray .rewardMin[0], 5, 1;		// Reward amt <WIN TEA>, <LOSE TEAM>
+	setarray .rewardCnt[0], 10, 20;		// Reward count
+	setarray $CDuration[0], 5, 10, 15; 	// Game time in minutes
+	.buffs = 1;							// Buff after death ( 1 = on ; 0 = off )
+	.redteam_color = 412;				// Red team cloth color
+	.blueteam_color = 300;				// Blue team cloth color
+	// Config ends here --------------------------
+	
+	$captainon = 0;
+	$captainMap$ = "pvp_n_2-4";
+	setarray $@cTeamBlue[0], 0;
+	setarray $@cTeamRed[0], 0;
+	setarray $warpPointRedCp[0], 163, 122;
+	setarray $warpPointBlueCp[0], 36, 122;
+	mapwarp $captainMap$,"prontera",156,191,0;
+	bindatcmd "cboard", strnpcinfo(3) + "::OnBoardAsked"; 
+	end;
+}
+
+pvp_n_2-4	mapflag	battleground	2
+
+prontera,126,166,3	script	Captain::alacent	4_M_ROKI2,{
+	.@npcname$ = "[Leag]";
+	mes .@npcname$;
+	mes "Hello to you, " + strcharinfo(0);
+	mes "I'm the Captain Manager.";
+	mes "When you talk to me, you'll be able to setup or join an existing Captain.";
+	@revert = getlook(7);
+	next;
+	mes .@npcname$;
+	mes "Here's how a Captain works.";
+	mes "First of all, this is a team match.";
+	mes "A general party matching will be made when all players will be registered.";
+	next;
+	mes .@npcname$;
+	mes "Once " + $maxCMemberCount + " will have join, the team matching will begin, and the match will start.";
+	mes "This is not really an alone fight.";
+	.@message$ = "";
+	for(.@i = 0; .@i<getarraysize($CDuration); .@i++)
+	{
+		.@message$ = (.@i == 0 ? "" : (.@i == getarraysize($CDuration) - 1 ? ", or " : ", ")) + $CDuration[.@i];
+	}
+	mes "Each team will have a duration of " + .@message$ + " minutes to kill all the Captains of the other team.";
+	mes "Normal kills gives points, but as long as a Captain is alive, the round continue.";
+	mes "On the other hand, you're not prevented from killing or hurting your teammates.";
+	mes "You can only differenciate them from color and name, as a fakename will be applied.";
+	next;
+	mes .@npcname$;
+	if ($captainon == 2)
+	{
+		goto OnEnterAgain;
+	}
+	if ($captainon == 1)
+	{
+		if(callfunc("CheckCPlayers") == 1)
+		{
+			next;
+			mes .@npcname$;
+			mes "Be patient please. The Captain will start soon.";
+			close;
+		}
+
+		mes "So. Are you interested?";
+		if (select("Join the currently running Captain","No, thanks") == 1)
+		{
+			callsub OnJoin, 1;
+		}
+		else
+		{
+			goto OnLeave;
+		}
+	}
+	else if ($captainon == 0)
+	{
+		if (select("Start a new Captain","No, thanks") == 1)
+		{
+			callsub OnJoin, 0;
+		}
+		else
+		{
+			goto OnLeave;
+		}
+	}
+	else
+	{
+		next;
+		mes .@npcname$;
+		mes "Sorry, it's too late for this battle. Come back later.";
+	}
+	close;
+
+OnEnterAgain:
+	.@found1 = callfunc("CheckTeamRedPlayer", 0);
+	.@found2 = callfunc("CheckTeamBluePlayer", 0);
+	.@found = .@found1 + .@found2;
+	if(.@found >= 1)
+	{
+		mes "Get ready, I'll send you back.";
+		if(.@found1 == 1)
+		{
+			warp $captainMap$, $warpPointRedCp[0], $warpPointRedCp[1];
+		}
+		else
+		{
+			warp $captainMap$, $warpPointBlueCp[0], $warpPointBlueCp[1];
+		}
+	}
+	else
+	{
+		mes "You're not part of this Captain.";
+		mes "Wait for another to begin, please.";
+	}
+	close;
+
+OnJoin:
+	.@mode = getarg(0);
+	.@npcname$ = "[Leag]";
+	next;
+	mes .@npcname$;
+	mes "Sure!";
+	mes "It'll cost you " + $CEntryPrice + "z to enter.";
+	if (Zeny < $CEntryPrice)
+	{
+		next;
+		mes .@npcname$;
+		mes "Sorry, but you lack some money...";
+		close;
+	}
+	if (select("Here you are.","I'll get back") == 1)
+	{
+		next;
+		mes .@npcname$;
+		Zeny = Zeny - $CEntryPrice;
+		mes "Allright.";
+		if (.@mode == 0)
+		{
+			next;
+			mes .@npcname$;
+			mes "Now, choose a duration.";
+			.@menu$ = "";
+			for(.@i = 0; .@i<getarraysize($CDuration); .@i++)
+			{
+				.@menu$ = .@menu$ + (.@i == 0 ? "" : ":") + $CDuration[.@i] + " minutes";
+			} 
+			.@choice = select(.@menu$) - 1;
+			next;
+			mes .@npcname$;
+			mes "Allright, let's go for " + $CDuration[.@choice] + " minutes then.";
+		}
+		next;
+		mes .@npcname$;
+		mes "The team with the highest sum of points once the duration will be ellapsed will win.";
+		mes "The reward will be the total amount paid by all players, divided between the team players.";
+		mes "Also, there's an individual reward according to the number of kill a player may do.";
+		if (.@mode == 0)
+		{
+			deletearray $@CMembers[0], getarraysize($@CMembers);
+			deletearray $@cTeamRed[0], getarraysize($@cTeamRed);
+			deletearray $@cTeamBlue[0], getarraysize($@cTeamBlue);
+      
+    			bg_destroy $@RedTeam_CM; 
+    			bg_destroy $@blueTeam_CM; 
+
+      			bg_leave;
+  			bg_updatescore $captainMap$, 0, 0;
+  
+			$@CMembers[0] = getcharid(3);
+			
+			$captainon = 1;
+			$battleDuration = $CDuration[.@choice];
+			announce "[Captain] " + strcharinfo(0) + " just join the Captain. Who will come to fight him?",bc_all,0x0000FF;
+		}
+		else
+		{
+      			bg_leave;
+			$@CMembers[getarraysize($@CMembers)] = getcharid(3);
+			if (getarraysize($@CMembers) < $maxCMemberCount)
+			{
+				announce "[Captain] " + strcharinfo(0) + " just join the Captain. Still " + ($maxCMemberCount - getarraysize($@CMembers)) + " fighters needed to begin!",bc_all,0x0000FF;
+			}
+			else
+			{
+				//start
+				//build teams
+				.@teamCount = $maxCMemberCount / 2;
+				//warp first char
+				announce "[Captain] The fight begins!", bc_all, 0x0000FF;
+				.@warped = 0;
+				$@RedTeam_CM = bg_create($captainMap$, $warpPointRedCp[0], $warpPointRedCp[1]);
+				$@blueTeam_CM = bg_create($captainMap$, $warpPointBlueCp[0], $warpPointBlueCp[1]);
+				for(.@i = 0; .@i<getarraysize($@CMembers); .@i++)
+				{
+					if (attachrid($@CMembers[.@i]) == 1)
+					{	
+						CPOINTS = 0;
+						getmapxy(.@map$, .@x, .@y, 0);
+						savepoint .@map$, .@x, .@y;
+						if (getarraysize($@cTeamRed) < .@teamCount)
+						{
+							$@cTeamRed[getarraysize($@cTeamRed)] = $@CMembers[.@i];
+							bg_join($@RedTeam_CM);
+							setlook 7, getvariableofnpc(.redteam_color,"alabac"); //alabac
+							warp $captainMap$, $warpPointRedCp[0], $warpPointRedCp[1];
+						}
+						else if (getarraysize($@cTeamBlue) < .@teamCount)
+						{
+							$@cTeamBlue[getarraysize($@cTeamBlue)] = $@CMembers[.@i];
+							bg_join($@blueTeam_CM);
+							setlook 7, getvariableofnpc(.blueteam_color,"alabac");
+							warp $captainMap$, $warpPointBlueCp[0], $warpPointBlueCp[1];
+						}
+						else
+						{
+							if(rand(0,1))
+							{
+								$@cTeamRed[getarraysize($@cTeamRed)] = $@CMembers[.@i];
+								bg_join($@RedTeam_CM);
+								setlook 7, getvariableofnpc(.redteam_color,"alabac"); //alabac
+								warp $captainMap$, $warpPointRedCp[0], $warpPointRedCp[1];
+							}
+							else
+							{
+								$@cTeamBlue[getarraysize($@cTeamBlue)] = $@CMembers[.@i];
+								bg_join($@blueTeam_CM);
+								setlook 7, getvariableofnpc(.blueteam_color,"alabac");
+								warp $captainMap$, $warpPointBlueCp[0], $warpPointBlueCp[1];
+							}
+						}
+					}
+				}
+				donpcevent "alabac::OnStartC";
+			}
+		}
+	}
+	else
+	{
+		goto OnLeave;
+	}
+	close;
+
+OnLeave:
+	.@npcname$ = "[Leag]";
+	next;
+	mes .@npcname$;
+	mes "Your choice!";
+	close;
+}
+
+function	script	CheckTeamRedPlayer	{
+	.@updateCap = getarg(0);
+	for(.@i = 0; .@i<getarraysize($@cTeamRed) && .@found == 0; .@i++)
+	{
+		if($@cTeamRed[.@i] == getcharid(3))
+		{
+			if(.@updateCap)
+				CAPTAIN = 0;
+			return 1;
+		}
+	}
+	return 0;
+}
+
+function	script	CheckTeamBluePlayer	{
+	.@updateCap = getarg(0);
+	for(.@i = 0; .@i<getarraysize($@cTeamBlue) && .@found == 0; .@i++)
+	{
+		if($@cTeamBlue[.@i] == getcharid(3))
+		{
+			if(.@updateCap)
+				CAPTAIN = 0;
+			return 1;
+		}
+	}
+	return 0;
+}
+
+function	script	CheckCPlayers	{
+	for(.@i = 0; .@i<getarraysize($@CMembers) && .@found == 0; .@i++)
+	{
+		if($@CMembers[.@i] == getcharid(3))
+		{
+			return 1;
+		}
+	}
+	return 0;
+}
