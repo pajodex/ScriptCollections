@@ -15,7 +15,6 @@ If(GetFree) {
 	next;
 	mes "[ ^FF0000System^000000 ]";
 	mes "Here you go!";
-	savepoint "prontera" ,155,183;
 	if(.char_bound) {
 	for(.@i = 0; .@i<getarraysize(.char_reward); .@i++)
 		getitem .char_reward[.@i],.char_reward_amt[.@i];
