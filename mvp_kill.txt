@@ -10,6 +10,7 @@
 // 1.1 - used setarray function to optimize script
 // 1.2 - Added modified Euphy MVP ladder
 //		 slight rework on the script
+// 1.3 - Fixed on reset function (Report by: celeron0134)
 // ============================================
 -	script	#mvp_kill	-1,{
 
