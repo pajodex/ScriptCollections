@@ -1,0 +1,45 @@
+// GM Announcer
+// By pajodex
+-	script	GMAnnouncer	-1,{
+OnResetAnnounce:
+OnAtCmd:
+	if(select("Announce:Nothing") == 2 ) close;
+		mes "What messaage to announce?";
+		input .@announce$;
+		next;
+		mes "Announce: "+.@announce$+" ?";
+		if(select("Yes:No") == 2) callsub OnResetAnnounce;
+			.announce$ = .@announce$;
+			mes "Announce Interval? (in minutes)";
+			mes "- How many times will the broadcast be repeated?";
+			input .@interval;
+			next;
+			mes "Are you sure broadcast interval will be every ".@interval" mins?";
+			if(select("Yes:No") == 2) callsub OnResetAnnounce;
+				.interval = .@interval;
+				donpcevent strnpcinfo(3)+"::OnAnnounce";
+				mes "Done!";
+				close;
+			
+OnAnnounce:
+	announce .announce$, 0;
+	initnpctimer;
+	end;
+	
+OnTimer60000;
+	.timer++;
+	if(.interval == .timer) {
+		announce .announce$, 0;
+		.timer = 0;
+		end;
+	}
+	setnpctimer 0;
+	end;
+	
+OnInit:
+	.interval = 0;
+	.announce$ = "";
+	.timer = 0;
+	bindatcmd "gmbroadcast",strnpcinfo(3)+"::OnAtCmd",0,60;
+	end;
+}
