@@ -90,7 +90,7 @@ prontera,148,170,6	script	MVP Ladder#Euphy	891,{
 			if ( select( "Confirm","Cancel" ) == 1 ) {
 				query_sql("UPDATE `char_reg_num` SET `value` = '0' WHERE `key` ='MVPKills'");
 				addrid(0);
-				MVP_Rank = 0;
+				MVPKills = 0;
 			}
 			close;
 		default:		
