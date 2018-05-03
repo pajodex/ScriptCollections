@@ -214,7 +214,7 @@ OnAtCmd:
 	sleep 6000;
 	announce "[ Rune War ] : You may now proceed to prontera if you want to join.",0;
 	enablenpc "rwr";
-	announce "[ Ragnarok Event ] : Registration ends in "+ .register_time +" mins.",0;
+	announce "[ Rune War ] : Registration ends in "+ .register_time +" mins.",0;
 	sleep .register_time * 60000;
 	if(getvariableofnpc(.size, "rwr") < 2) {
 		announce "[ Rune War ] : Too few players registered.",0;
