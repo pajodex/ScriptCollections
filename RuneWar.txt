@@ -172,6 +172,10 @@ OnInit:
 	// Game Settings
 	// =============
 	
+	// How many players to start?
+	// default = 4 (2v2)
+	.minplayers = 4;
+	
 	// How long, in mins, for players to register_time
 	// default = 3 mins
 	.register_time = 3;
@@ -216,7 +220,7 @@ OnAtCmd:
 	enablenpc "rwr";
 	announce "[ Rune War ] : Registration ends in "+ .register_time +" mins.",0;
 	sleep .register_time * 60000;
-	if(getvariableofnpc(.size, "rwr") < 2) {
+	if( getvariableofnpc(.size, "rwr") < .minplayers ) {
 		announce "[ Rune War ] : Too few players registered.",0;
 		sleep 5000;
 		announce "[ Rune War ] : Terminating event.",0;
