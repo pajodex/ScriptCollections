@@ -312,7 +312,6 @@ L_die:
 }
 prontera,150,185,0	script	Rune War Register::rwr	100,{
 	.@name$ = strcharinfo(0);
-	.@minplayer2start = getvariableofnpc(.minplayer2start, "thing#main"); 
 	.@start = getvariableofnpc(.start, "runewar#main"); 
 	if(.@start == 1) {
 		mes "Sorry, event is on-going.";
