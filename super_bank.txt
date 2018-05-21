@@ -1,0 +1,174 @@
+//===== rAthena Script =======================================
+//= Super Banker
+//===== By: ==================================================
+//= pajodex
+//===== Current Version: =====================================
+//= 1.0
+//===== Compatible With: =====================================
+//= rAthena Project (pajodex)
+//===== Description: =========================================
+/*
+
+https://rathena.org/board/topic/115606-zeny-in-separate-table/
+
+*/
+//=====******** Note ********=================================
+//= if you find bugs or problem, please do tell DM me at
+//= Discord (pajodex#1328) or rAthena (pajodex) 
+//= open for suggestions
+//===== Additional Comments: =================================
+// 1.0 - Initial release 
+//===== Credits goes to: =====================================
+//= AnnieRuru
+//=============================================================
+prontera,150,185,0	script	Super Banker	100,{
+function	F_OpenBankAcc;
+	query_sql("SELECT `account_type`, `zeny`, `deposit_limit`, `withdraw_limit`, `daily_deposit`, `daily_withdraw` FROM `s_bank` WHERE `account_id`="+ getcharid(3), .@acc_type, .@zeny$, .@max_deposit$, .@max_withdraw$, .@daily_deposit$, .@daily_withdraw$);
+	if ( .@acc_type == 0 ) {
+		mes "Do you want to open a bank account?";
+		next;
+		if(select("Yes","Nope") == 2) close;
+		mes "What bank account type do you wish to open?";
+		next;
+		switch(select("Information","Basic Account","Premium Account","Wicked Account","I changed my mind")) {
+			case 1:
+				mes "Info here...";
+				close;
+			
+			case 2:
+				// F_OpenBankAcc ( <Account Type>, <Fee>, <Account Type Name>, <Daily Deposit Limit>, <Daily Withdraw Limit>)
+				F_OpenBankAcc ( 1, 1000000, "Basic Account", "100000000", "10000000" ); break;
+				
+			case 3:
+				F_OpenBankAcc ( 2, 5000000, "Premium Account", "1000000000", "100000000" ); break;
+			
+			case 4:
+				F_OpenBankAcc ( 3, 10000000, "Wicked Account", "5000000000", "1000000000" ); break;
+							
+			default: close;
+		}
+	} else {
+		query_sql("SELECT `account_type`, `zeny`, `deposit_limit`, `withdraw_limit`, `daily_deposit`, `daily_withdraw` FROM `s_bank` WHERE `account_id`="+ getcharid(3), .@acc_type, .@zeny$, .@max_deposit$, .@max_withdraw$, .@daily_deposit$, .@daily_withdraw$);
+		.@i = atoi( gettime(DT_YEAR) +""+ gettime(DT_DAYOFYEAR) ); 
+		if( #BANKRESET != .@i ) {
+			#BANKRESET = .@i;
+			query_sql "UPDATE `s_bank` SET `daily_deposit`="+.@max_deposit$+", `daily_withdraw`="+.@max_withdraw$+" WHERE `account_id`="+getcharid(3);
+		}
+		mes "Current Zeny:";
+		mes F_InsertComma(.@zeny$) +"z";
+		mes " ";
+		mes "Deposit Limit:";
+		mes F_InsertComma(.@daily_deposit$) +"z";
+		mes " ";
+		mes "Withdrawal Limit:";
+		mes F_InsertComma(.@daily_withdraw$) +"z";
+		mes " ";
+		mes "What would you like to do?";
+		next;
+		switch(select("Deposit","Withdraw","^ff0000Cancel Account^000000","Nothing")) {
+			case 1: 
+				if( .@daily_deposit$ == "0" ) {
+					mes "Sorry, it seems you've reached your maximum daily deposit limit";
+					close;
+				}
+				mes "You currently have:";
+				mes F_InsertComma(.@zeny$) +"z";
+				mes " ";
+				mes "How much zeny will be deposited in your bank account?";
+				input .@amount, 0, Zeny;
+				if( Zeny < .@amount ) {
+					mes "You dont have enough Zeny to make this transaction";
+					close;
+				}
+				if( query_sql("SELECT `daily_deposit` FROM `s_bank` WHERE `daily_deposit`<="+.@amount+" AND `account_id`="+getcharid(3))) {
+					mes "You can only deposit "+.@daily_deposit$ +"z for today.";
+					close;
+				}
+				mes "Are you sure you want to deposit "+ F_InsertComma(.@amount) +"z?";
+				next;
+				if(select("Yes","No") == 2) close;
+					Zeny -= .@amount;
+					query_sql "UPDATE `s_bank` SET `zeny`=`zeny`+"+.@amount+", `daily_deposit`=`daily_deposit`-"+.@amount+" WHERE `account_id`="+getcharid(3);
+					mes "You have deposited "+ F_InsertComma( .@amount )+"z in your bank account";
+				close;
+				
+			case 2: 
+				if( .@daily_withdraw$ == "0" ) {
+					mes "Sorry, it seems you've reached your maximum daily withdrawal limit";
+					close;
+				}
+				mes "You currently have:";
+				mes F_InsertComma(.@zeny$) +"z";
+				mes " ";
+				mes "How much zeny you wish to withdraw?";
+				input .@amount, 0, .@daily_withdraw$$;
+				if(.@amount > (MAX_ZENY - Zeny)) {
+					mes "You cant hold that much Zeny";
+					close;
+				}
+				if( query_sql("SELECT `daily_withdraw` FROM `s_bank` WHERE `daily_withdraw`<="+.@amount+" AND `account_id`="+getcharid(3))) {
+					mes "You can only withdraw "+.@daily_withdraw$ +"z for today.";
+					close;
+				}
+				if( query_sql("SELECT `zeny` FROM `s_bank` WHERE `zeny`<="+.@amount+" AND `account_id`="+getcharid(3))) {
+					mes "You dont have enough Zeny in your bank to withdraw.";
+					close;
+				}
+				mes "Are you sure you want to withdraw "+ F_InsertComma(.@amount) +"z?";
+				next;
+				if(select("Yes","No") == 2) close;
+					Zeny += .@amount;
+					query_sql "UPDATE `s_bank` SET `zeny`=`zeny`-"+.@amount+", `daily_withdraw`=`daily_withdraw`-"+.@amount+" WHERE `account_id`="+getcharid(3);
+					mes "You have withdrawn "+ F_InsertComma( .@amount )+"z in your bank account";
+				close;
+		
+			case 3:
+				if( query_sql("SELECT `zeny` FROM `s_bank` WHERE `zeny`<=1 AND `account_id`="+getcharid(3))) {
+					mes "You still have "+ .@zeny$ +"z left in your account";
+					mes " ";
+					mes "Make sure you've withdrawn all your zeny before cancelling your account";
+					mes " ";
+					mes "Or else, all of the remaining zeny will be deleted.";
+					next;
+				}
+				mes "Are you sure you want to cancel your account??";
+				next;
+				if(select("Yes","No") == 2) close;
+				query_sql("DELETE FROM `s_bank` WHERE `account_id`="+ getcharid(3)); 
+				mes "Your bank account has been deleted";
+				close;
+				
+			default: close;
+		}
+	}
+	end;
+
+OnInit:
+	.@string$  = "CREATE TABLE IF NOT EXISTS `s_bank` (";
+	.@string$ += "`account_id` int(11) unsigned NOT NULL DEFAULT '0',";
+	.@string$ += "`account_type` int(11) unsigned NOT NULL DEFAULT '0',";
+	.@string$ += "`zeny` BIGINT(20) UNSIGNED NOT NULL DEFAULT '0',";
+	.@string$ += "`deposit_limit` BIGINT(20) UNSIGNED NOT NULL DEFAULT '0',";
+	.@string$ += "`withdraw_limit` BIGINT(20) UNSIGNED NOT NULL DEFAULT '0',";
+	.@string$ += "`daily_deposit` BIGINT(20) UNSIGNED NOT NULL DEFAULT '0',";
+	.@string$ += "`daily_withdraw` BIGINT(20) UNSIGNED NOT NULL DEFAULT '0',";
+	.@string$ += "PRIMARY KEY  (`account_id`)) ENGINE=InnoDB";
+	query_sql(.@string$);
+	end;
+	
+	function	F_OpenBankAcc	{
+		mes "Are you sure you want to open a ^ff0000"+ getarg(2) +"^000000?";
+		mes "Total cost:";
+		mes F_InsertComma( getarg(1) )+"z";
+		next;
+		if(select("Sure","Nope") == 2) close;
+		if(Zeny < getarg(1)) {
+			mes "Sorry, you dont have enough Zeny to open a ^ff0000"+ getarg(2) +"^000000";
+			close;
+		}
+		Zeny -= getarg(1);
+		query_sql("INSERT INTO `s_bank` (`account_id`,`account_type`,`deposit_limit`,`withdraw_limit`,`daily_deposit`,`daily_withdraw`) VALUES ('"+getcharid(3)+"', '"+getarg(0)+"', '"+getarg(3)+"', '"+getarg(4)+"', '"+getarg(3)+"', '"+getarg(4)+"')");
+		mes "You have successfully created a ^ff0000"+ getarg(2) +"^000000";
+		close;
+	}
+}
