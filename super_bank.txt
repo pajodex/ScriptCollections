@@ -20,6 +20,7 @@ https://rathena.org/board/topic/115606-zeny-in-separate-table/
 // 1.0 - Initial release 
 //===== Credits goes to: =====================================
 //= AnnieRuru
+//= Emistry
 //=============================================================
 prontera,150,185,0	script	Super Banker	100,{
 function	F_OpenBankAcc;
@@ -123,7 +124,7 @@ function	F_OpenBankAcc;
 				close;
 		
 			case 3:
-				if( query_sql("SELECT `zeny` FROM `s_bank` WHERE `zeny`<=1 AND `account_id`="+getcharid(3))) {
+				if( query_sql("SELECT `zeny` FROM `s_bank` WHERE `zeny`>=1 AND `account_id`="+getcharid(3))) {
 					mes "You still have "+ .@zeny$ +"z left in your account";
 					mes " ";
 					mes "Make sure you've withdrawn all your zeny before cancelling your account";
