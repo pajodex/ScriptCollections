@@ -214,8 +214,11 @@ OnTouch:
 	@point = 1;
 	
 	while (@point){
-	if (Hp < 10)
-		atcommand "@die "+ strcharinfo(0);
+	if ( Hp > 1 )
+			percentheal -10, 0;
+		else
+			percentheal -100, 0;
+		specialeffect2 49;
 	if ( getcharid(4) == .@red )
 		++.redpoints;
 	else if ( getcharid(4) == .@blue )
@@ -237,6 +240,14 @@ OnTouch:
 }
 
 pvp_n_1-4	mapflag	battleground	2
+pvp_n_1-4	mapflag	nosave	SavePoint
+pvp_n_1-4	mapflag	nowarp
+pvp_n_1-4	mapflag	nowarpto
+pvp_n_1-4	mapflag	noteleport
+pvp_n_1-4	mapflag	nomemo
+pvp_n_1-4	mapflag	nopenalty
+pvp_n_1-4	mapflag	nobranch
+pvp_n_1-4	mapflag	noicewall
 
 
 
